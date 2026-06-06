@@ -557,7 +557,7 @@ body {
   .btn { padding: 6px 10px; font-size: 11.5px; gap: 4px; }
   .btn svg { width: 12px; height: 12px; }
   /* Hide text labels on very small screens, keep icons */
-  .btn-customer span, .mobile-btn { display: none; }
+  .btn-customer span, .pdf-btn{display: none; }
 }
 
 /* ── PAGE WRAPPER + INVOICE DOC ── */
