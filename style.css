@@ -1,0 +1,737 @@
+/* ============================================================
+   INVOICE APP — style.css  (redesigned)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --red:    #C0392B;
+  --yellow: #FFE900;
+  --total:  #FFD000;
+  --dark:   #1C1C1E;
+  --mid:    #444;
+  --line:   #D0D5DD;
+  --blue:   #1A73E8;
+  --green:  #1A8A4A;
+  --bg:     #F2F4F7;
+  --white:  #FFFFFF;
+  --khmer:  'Noto Sans Khmer', sans-serif;
+  --sans:   'DM Sans', sans-serif;
+  --shadow: 0 8px 40px rgba(0,0,0,0.14);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--dark);
+  -webkit-font-smoothing: antialiased;
+}
+
+.khmer { font-family: var(--khmer); }
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.toolbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  background: var(--dark);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+.toolbar-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 20px;
+}
+
+.toolbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.toolbar-actions { display: flex; gap: 8px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: filter 0.15s, transform 0.1s;
+}
+.btn:active { transform: scale(0.96); }
+.btn:hover  { filter: brightness(1.1); }
+
+.btn-customer { background: #3A3A4A; color: #ddd; }
+.btn-add      { background: #27AE60; color: #fff; }
+.btn-save     { background: var(--red); color: #fff; }
+.btn-cancel   { background: #eee; color: var(--dark); }
+.btn-apply    { background: var(--blue); color: #fff; }
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(3px);
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--white);
+  border-radius: 12px;
+  width: 440px;
+  max-width: 96vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  overflow: hidden;
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.modal-header h2 { font-size: 16px; font-weight: 700; }
+.modal-close {
+  background: none; border: none; cursor: pointer;
+  font-size: 16px; color: #888; padding: 2px 6px;
+  border-radius: 4px; transition: background 0.15s;
+}
+.modal-close:hover { background: #f0f0f0; }
+
+.modal-body { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+
+.field-group { display: flex; flex-direction: column; gap: 5px; }
+.field-group label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--mid);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.field-group .hint { font-weight: 400; text-transform: none; color: #aaa; font-size: 10.5px; }
+
+.field-group input {
+  padding: 9px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 7px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--dark);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field-group input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26,115,232,0.12);
+}
+.khmer-input { font-family: var(--khmer); }
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 22px 18px;
+  border-top: 1px solid var(--line);
+}
+
+/* ============================================================
+   PAGE WRAPPER
+   ============================================================ */
+.page-wrapper {
+  padding: 72px 20px 48px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ============================================================
+   INVOICE
+   ============================================================ */
+.invoice {
+  background: var(--white);
+  width: 794px;
+  min-height: 880px;
+  box-shadow: var(--shadow);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  padding-bottom: 56px; /* room for footer */
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.inv-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 22px 12px;
+  gap: 18px;
+  border-bottom: 2.5px solid var(--dark);
+  background: #FAFAFA;
+}
+
+.logo-box {
+  flex-shrink: 0;
+  width: 150px;
+  border: 1.5px solid #C8CDD6;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #dde3ec;
+}
+.logo-box img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+
+.company-block { flex: 1; text-align: center; }
+
+.co-name {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--red);
+  line-height: 1.15;
+}
+.co-phone { font-size: 12.5px; color: var(--dark); margin-top: 3px; font-weight: 500; }
+.co-tag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-top: 5px;
+  border-bottom: 1.5px solid var(--dark);
+  padding-bottom: 1px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   CLIENT GRID
+   ============================================================ */
+.client-grid {
+  display: flex;
+  justify-content: space-between;
+  border: 1.5px solid var(--dark);
+  margin: 10px 14px;
+  padding: 8px 12px;
+  border-radius: 2px;
+}
+
+.client-col { display: flex; flex-direction: column; gap: 4px; }
+.client-col-right { text-align: right; align-items: flex-end; }
+
+.cfield {
+  display: flex;
+  align-items: baseline;
+  flex-direction: row;
+  gap: 7px;
+  font-size: 11.5px;
+}
+.client-col-right .cfield {  }
+
+.cl { font-weight: 700; white-space: nowrap; min-width: 64px; }
+.cv {
+  color: var(--dark);
+  font-family: var(--khmer);
+  font-size: 11.5px;
+  min-width: 100px;
+}
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+.inv-table {
+  width: calc(100% - 28px);
+  margin: 4px 14px;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+
+.inv-table th {
+  background: var(--dark);
+  color: var(--white);
+  font-family: var(--sans);
+  font-weight: 600;
+  padding: 6px 8px;
+  text-align: center;
+  border: 1px solid #3a3a3a;
+  letter-spacing: 0.3px;
+}
+
+.inv-table td {
+  border: 1px solid #D4D9E2;
+  padding: 5px 8px;
+  vertical-align: middle;
+  outline: none;
+  min-height: 26px;
+  transition: background 0.1s;
+}
+.inv-table td:focus { background: #EEF4FF; border-color: var(--blue); }
+
+.th-no, .tc-no   { width: 42px; text-align: center; }
+.th-content, .tc-content { font-family: var(--khmer); color: var(--blue); }
+.th-size, .tc-size { width: 85px; text-align: center; }
+.th-price, .tc-price { width: 85px; text-align: center; }
+.th-act, .tc-act  { width: 46px; text-align: center; border: none !important; background: transparent !important; }
+
+/* summary */
+.sum-row td {
+  background: var(--yellow);
+  font-weight: 700;
+  text-align: center;
+}
+.sum-addbtn { background: var(--yellow) !important; text-align: left !important; padding-left: 8px !important; }
+.sum-label { text-align: right !important; padding-right: 12px !important; background: var(--yellow) !important; }
+.sum-val   { background: var(--yellow) !important; min-width: 80px; }
+.total-row .sum-label,
+.total-row .sum-val { background: var(--total) !important; }
+
+/* small buttons inside table */
+.inline-add {
+  background: #27AE60; color: #fff;
+  padding: 3px 10px; font-size: 11px;
+  border: none; border-radius: 4px; cursor: pointer;
+  font-family: var(--sans); font-weight: 600;
+}
+.del-btn {
+  background: #e74c3c; color: #fff;
+  border: none; border-radius: 3px;
+  cursor: pointer; font-size: 11px;
+  width: 22px; height: 22px;
+  line-height: 1; padding: 0;
+}
+
+/* ============================================================
+   NOTES
+   ============================================================ */
+.notes-wrap { margin: 12px 14px 6px; }
+.notes-head { color: var(--red); font-weight: 700; font-size: 12px; margin-bottom: 5px; }
+.note {
+  color: var(--green); font-size: 11.5px;
+  line-height: 1.65; outline: none;
+  padding: 1px 3px;
+  border-bottom: 1px dashed transparent;
+}
+.note:focus { border-bottom-color: var(--green); background: #F0FFF4; }
+.note-add-btn { margin-top: 6px; background: #2980b9; }
+
+/* ============================================================
+   SIGNATURES
+   ============================================================ */
+.sig-row {
+  display: flex;
+  justify-content: space-around;
+  margin: 24px 14px 12px;
+  gap: 20px;
+}
+.sig-block {
+  flex: 1; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.sig-title { font-size: 11px; font-weight: 600; color: var(--dark); }
+.sig-img { max-width: 140px; max-height: 66px; object-fit: contain; }
+.sig-line { width: 180px; border-bottom: 1.5px solid var(--dark); margin-top: 4px; }
+.sig-role { font-size: 11px; font-weight: 600; color: var(--dark); }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.inv-footer {
+  background: var(--dark);
+  color: var(--white);
+  text-align: center;
+  padding: 9px 14px;
+  font-size: 10.5px;
+  line-height: 1.75;
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+}
+.inv-footer .khmer { font-family: var(--khmer); }
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+@media print {
+  body { background: white; }
+  .toolbar, .no-print { display: none !important; }
+  .page-wrapper { padding: 0; }
+  .invoice { box-shadow: none; width: 100%; }
+}
+
+/* ── GREEN INVOICE OVERRIDES (inv-green class) ── */
+.inv-green .sum-row td {
+  background: #C8F0D8 !important;
+}
+.inv-green .sum-label {
+  background: #C8F0D8 !important;
+}
+.inv-green .sum-val {
+  background: #C8F0D8 !important;
+}
+.inv-green .total-row .sum-label,
+.inv-green .total-row .sum-val {
+  background: #27AE60 !important;
+  color: #fff !important;
+}
+
+/* ── mobile-btn style ── */
+.mobile-btn { background: #555 !important; color: #fff !important; }
+
+/* ============================================================
+   WORKER TABLE VIEW
+   ============================================================ */
+.worker-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  border: 1.5px solid var(--line);
+  background: #fff;
+}
+.worker-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+.worker-tbl th {
+  background: var(--dark);
+  color: #fff;
+  padding: 7px 10px;
+  text-align: center;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.worker-tbl td {
+  border: 1px solid #e5e7eb;
+  padding: 7px 10px;
+  text-align: center;
+  vertical-align: middle;
+}
+.worker-tbl tr:nth-child(even) td { background: #fafafa; }
+.wt-name { text-align: left !important; font-weight: 600; }
+.wt-remain { color: var(--green); font-weight: 700; }
+.wt-btns { white-space: nowrap; }
+
+/* DATE BANNER */
+.worker-date-banner {
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.wdb-label { color: #555; }
+.wdb-date {
+  background: #FFF9DB;
+  border: 1.5px solid #FFE900;
+  border-radius: 5px;
+  padding: 3px 10px;
+  min-width: 80px;
+  text-align: center;
+  outline: none;
+  cursor: text;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--dark);
+}
+.wdb-date:focus { border-color: var(--blue); background: #EEF4FF; }
+
+/* SIGNATURE AREA */
+.worker-sig-area {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 10px;
+}
+.wsa-inner {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.wsa-seal-box {
+  padding: 6px 10px;
+  min-width: 110px;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.wsa-sig-img {
+  max-width: 100px;
+  max-height: 54px;
+  object-fit: contain;
+}
+.wsa-name {
+  font-size: 14px;
+  font-weight: 700;
+  outline: none;
+  padding: 2px 6px;
+  border-bottom: 1px dashed transparent;
+  cursor: text;
+}
+.wsa-name:focus { border-bottom-color: var(--blue); background: #EEF4FF; }
+.wsa-date {
+  font-size: 12px;
+  color: #555;
+}
+.wsa-date span {
+  outline: none;
+  padding: 1px 5px;
+  border-bottom: 1px dashed transparent;
+  cursor: text;
+  display: inline-block;
+}
+.wsa-date span:focus { border-bottom-color: var(--blue); background: #EEF4FF; }
+
+/* Worker print only area */
+.worker-print-only { display: none; }
+@media print {
+  .worker-print-only { display: block !important; }
+}
+
+/* ============================================================
+   RESPONSIVE — iPhone 6+ and up (375px+)
+   ============================================================ */
+
+/* ── DASHBOARD ── */
+@media (max-width: 600px) {
+  .dash-header { padding: 28px 16px 20px; }
+  .dash-header h1 { font-size: 20px; }
+  .dash-cards { padding: 16px 14px; gap: 10px; }
+  .dash-card { padding: 14px 16px; gap: 12px; }
+  .dc-icon { width: 42px; height: 42px; }
+  .dc-text h3 { font-size: 14px; }
+  .dc-text p  { font-size: 11px; }
+}
+
+/* ── TOOLBAR ── */
+@media (max-width: 600px) {
+  .toolbar-inner,
+  .worker-toolbar-inner {
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .toolbar-brand,
+  .worker-toolbar-brand { font-size: 13px; }
+  .toolbar-actions { display: flex; flex-wrap: wrap; gap: 5px; }
+  .btn { padding: 6px 10px; font-size: 11.5px; gap: 4px; }
+  .btn svg { width: 12px; height: 12px; }
+  /* Hide text labels on very small screens, keep icons */
+  .btn-customer span, .mobile-btn { display: none; }
+}
+
+/* ── PAGE WRAPPER + INVOICE DOC ── */
+@media (max-width: 600px) {
+  .page-wrapper { padding: 68px 0 32px; }
+  .invoice {
+    width: 100%;
+    min-height: unset;
+    border-radius: 0;
+    box-shadow: none;
+    padding-bottom: 60px;
+  }
+  /* Header: stack logo + company vertically */
+  .inv-header {
+    flex-direction: column;
+    align-items: center;
+    padding: 14px 14px 10px;
+    gap: 10px;
+    text-align: center;
+  }
+  .logo-box { width: 110px; }
+  .company-block { margin-right: 0 !important; }
+  .co-name { font-size: 22px; }
+  .co-phone { font-size: 11px; }
+
+  /* Client grid: stack columns */
+  .client-grid {
+    flex-direction: column;
+    margin: 8px 10px;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  .client-col-right { text-align: left; align-items: flex-start; }
+  .cfield { font-size: 11px; }
+  .cl { min-width: 80px; font-size: 11px; }
+  .cv { font-size: 11px; min-width: unset; }
+
+  /* Table: allow horizontal scroll, shrink fonts */
+  .inv-table {
+    width: calc(100% - 20px);
+    margin: 4px 10px;
+    font-size: 10.5px;
+  }
+  .inv-table th { padding: 5px 5px; font-size: 10px; }
+  .inv-table td { padding: 5px 5px; font-size: 10.5px; }
+  .th-no, .tc-no { width: 28px; }
+  .th-size, .tc-size,
+  .th-price, .tc-price { width: 62px; }
+  .th-act, .tc-act { width: 32px; }
+  .del-btn { width: 20px; height: 20px; font-size: 10px; }
+
+  /* Notes */
+  .notes-wrap { margin: 10px 10px 6px; }
+  .note { font-size: 10.5px; }
+
+  /* Signatures */
+  .sig-row { margin: 16px 10px 10px; gap: 10px; }
+  .sig-title { font-size: 10px; }
+  .sig-line { width: 130px; }
+  .sig-role { font-size: 10px; }
+  .sig-img { max-width: 100px; max-height: 50px; }
+
+  /* Footer */
+  .inv-footer { font-size: 9.5px; padding: 8px 10px; line-height: 1.6; }
+}
+
+/* ── MODAL ── */
+@media (max-width: 600px) {
+  .modal {
+    width: 100%;
+    max-width: 100vw;
+    border-radius: 16px 16px 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+  .modal-overlay.open {
+    align-items: flex-end;
+  }
+  .modal-header { padding: 16px 18px 12px; }
+  .modal-header h2 { font-size: 15px; }
+  .modal-body { padding: 14px 18px; gap: 12px; }
+  .modal-footer { padding: 12px 18px 24px; }
+  .field-group input { font-size: 16px; /* prevent iOS zoom */ padding: 10px 12px; }
+  .field-row { grid-template-columns: 1fr; gap: 10px; }
+}
+
+/* ── WORKER SCREEN ── */
+@media (max-width: 600px) {
+  .worker-body { padding: 72px 12px 32px; }
+  .worker-summary { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
+  .ws-card { padding: 12px 10px; }
+  .ws-val { font-size: 18px; }
+  .ws-lbl { font-size: 10px; }
+
+  /* Date banner: wrap onto two lines */
+  .worker-date-banner {
+    flex-wrap: wrap;
+    font-size: 12px;
+    padding: 8px 12px;
+    gap: 5px;
+  }
+  .wdb-date { font-size: 12px; padding: 3px 8px; min-width: 70px; }
+
+  /* Worker table: horizontal scroll */
+  .worker-table-wrap { border-radius: 6px; }
+  .worker-tbl { font-size: 10.5px; min-width: 420px; }
+  .worker-tbl th { padding: 6px 7px; font-size: 10px; }
+  .worker-tbl td { padding: 6px 7px; }
+  .wc-btn { padding: 4px 6px; font-size: 12px; }
+
+  /* Add worker button */
+  .btn-add-worker { font-size: 13px; padding: 11px; }
+
+  /* Signature area */
+  .worker-sig-area { padding-right: 0; justify-content: center; margin-top: 16px; }
+  .wsa-name { font-size: 13px; }
+  .wsa-date { font-size: 11px; }
+
+  /* Worker modal */
+  .wmodal {
+    width: 100%;
+    max-width: 100vw;
+    border-radius: 16px 16px 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+  .wmodal-overlay.open { align-items: flex-end; }
+  .wmodal-body { padding: 14px 18px; gap: 12px; }
+  .wmodal-footer { padding: 12px 18px 24px; }
+  .wmodal-row { grid-template-columns: 1fr; gap: 10px; }
+  .wmodal input { font-size: 16px; /* prevent iOS zoom */ }
+}
+
+/* ── TOUCH: bigger tap targets ── */
+@media (max-width: 600px) {
+  .wc-btn { min-width: 34px; min-height: 34px; display: inline-flex; align-items: center; justify-content: center; }
+  .del-btn { min-width: 28px; min-height: 28px; }
+  a, button { -webkit-tap-highlight-color: transparent; }
+}
+
+/* ── TABLE SCROLL WRAPPER (mobile) ── */
+.table-scroll-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 4px 14px;
+}
+.table-scroll-wrap .inv-table {
+  width: 100%;
+  margin: 0;
+  min-width: 480px;
+}
+@media (max-width: 600px) {
+  .table-scroll-wrap { margin: 4px 10px; }
+  .table-scroll-wrap::after {
+    content: '';
+    display: block;
+  }
+  /* Button label hidden on small screens */
+  .btn-label { display: none; }
+  /* Toolbar scrollable on tiny screens */
+  .toolbar-actions { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+  /* Prevent page zoom on input focus (iOS) */
+  input, textarea, select { font-size: 16px !important; }
+  /* Worker table scrolls horizontally */
+  .worker-table-wrap { -webkit-overflow-scrolling: touch; }
+}
+@media (min-width: 601px) {
+  .btn-label { display: inline; }
+}

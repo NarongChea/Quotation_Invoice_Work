@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ceiling App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── DASHBOARD ── */
+    #dashboard {
+      display: flex; flex-direction: column;
+      min-height: 100vh; background: var(--bg);
+    }
+    .dash-header {
+      background: var(--dark); padding: 36px 20px 28px;
+      text-align: center;
+    }
+    .dash-header h1 {
+      font-family: var(--khmer); color: var(--yellow);
+      font-size: 26px; font-weight: 700; margin-bottom: 4px;
+    }
+    .dash-header p { color: #999; font-size: 13px; }
+    .dash-cards {
+      display: flex; flex-direction: column;
+      gap: 14px; padding: 24px 20px; flex: 1;
+    }
+    .dash-card {
+      background: #fff; border-radius: 10px;
+      border: 1.5px solid var(--line);
+      padding: 18px 20px;
+      display: flex; align-items: center; gap: 16px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      transition: box-shadow .15s, transform .1s;
+      text-decoration: none; color: inherit;
+    }
+    .dash-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.12); }
+    .dash-card:active { transform: scale(.98); }
+    .dc-icon {
+      width: 48px; height: 48px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .dc-icon svg { width: 24px; height: 24px; }
+    .dc-icon.yellow { background: #FFFBDB; }
+    .dc-icon.green  { background: #E8F5E9; }
+    .dc-icon.blue   { background: #E3F2FD; }
+    .dc-text h3 { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 3px; }
+    .dc-text p  { font-size: 12px; color: #888; }
+    .dc-arrow   { margin-left: auto; color: #ccc; }
+
+    /* ── SCREENS ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── BACK BUTTON in toolbar ── */
+    .btn-back {
+      background: #3A3A4A; color: #ddd;
+    }
+
+    /* ── WORKER SCREEN ── */
+    #worker-screen { background: var(--bg); min-height: 100vh; }
+    .worker-toolbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      background: var(--dark); box-shadow: 0 2px 12px rgba(0,0,0,.4);
+    }
+    .worker-toolbar-inner {
+      max-width: 900px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 20px;
+    }
+    .worker-toolbar-brand {
+      display: flex; align-items: center; gap: 8px;
+      color: #fff; font-size: 14px; font-weight: 600;
+    }
+    .worker-body { padding: 80px 20px 40px; max-width: 900px; margin: 0 auto; }
+    .worker-summary {
+      display: grid; grid-template-columns: repeat(2,1fr);
+      gap: 12px; margin-bottom: 20px;
+    }
+    @media(min-width:600px){ .worker-summary { grid-template-columns: repeat(4,1fr); } }
+    .ws-card {
+      background: #fff; border-radius: 8px;
+      border: 1.5px solid var(--line); padding: 14px 16px; text-align: center;
+    }
+    .ws-val { font-size: 22px; font-weight: 700; color: var(--dark); }
+    .ws-val.green { color: var(--green); }
+    .ws-lbl { font-size: 11px; color: #888; margin-top: 2px; }
+    .worker-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .wc {
+      background: #fff; border-radius: 8px;
+      border: 1.5px solid var(--line); padding: 12px 16px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .wc-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #FFF9DB; border: 1.5px solid #FFE900;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px; color: var(--dark); flex-shrink: 0;
+    }
+    .wc-info { flex: 1; min-width: 0; }
+    .wc-name { font-size: 14px; font-weight: 700; color: var(--dark); }
+    .wc-role { font-size: 11.5px; color: #888; margin-top: 1px; }
+    .wc-pay { text-align: right; flex-shrink: 0; }
+    .wc-amount { font-size: 16px; font-weight: 700; color: var(--green); }
+    .wc-days { font-size: 11px; color: #888; margin-top: 2px; }
+    .wc-btns { display: flex; gap: 6px; flex-shrink: 0; }
+    .wc-btn {
+      background: none; border: 1.5px solid var(--line);
+      border-radius: 6px; cursor: pointer; padding: 5px 8px;
+      color: #888; font-size: 13px; line-height: 1;
+      transition: background .12s;
+    }
+    .wc-btn:hover { background: #f5f5f5; }
+    .wc-btn.red { color: #e74c3c; border-color: #fcc; }
+    .btn-add-worker {
+      width: 100%; background: var(--dark); color: #fff;
+      border: none; border-radius: 8px; padding: 12px;
+      font-family: var(--sans); font-size: 14px; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center;
+      justify-content: center; gap: 8px; transition: filter .15s;
+    }
+    .btn-add-worker:hover { filter: brightness(1.15); }
+    /* worker modal */
+    .wmodal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.55); z-index: 600;
+      align-items: center; justify-content: center;
+    }
+    .wmodal-overlay.open { display: flex; }
+    .wmodal {
+      background: #fff; border-radius: 12px;
+      width: 420px; max-width: 95vw;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+      overflow: hidden; animation: slideUp .2s ease;
+    }
+    .wmodal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px 14px; border-bottom: 1px solid var(--line);
+    }
+    .wmodal-header h2 { font-size: 16px; font-weight: 700; }
+    .wmodal-body { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+    .wmodal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .wmodal-footer {
+      display: flex; justify-content: flex-end; gap: 8px;
+      padding: 14px 22px 18px; border-top: 1px solid var(--line);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ DASHBOARD ═══════════════════════════ -->
+<div id="dashboard">
+  <div class="dash-header">
+    <h1>ហៃគៀង ដេគ័រ</h1>
+    <p>Ceiling Construction Management</p>
+  </div>
+  <div class="dash-cards">
+    <div class="dash-card" onclick="openScreen('quotation-screen')">
+      <div class="dc-icon yellow">
+        <svg fill="none" stroke="#C8963C" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <div class="dc-text">
+        <h3>Quotation</h3>
+        <p>Create ceiling quotations</p>
+      </div>
+      <div class="dc-arrow">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+
+    <div class="dash-card" onclick="openScreen('invoice-screen')">
+      <div class="dc-icon green">
+        <svg fill="none" stroke="#1A8A4A" stroke-width="1.8" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      </div>
+      <div class="dc-text">
+        <h3>Invoice</h3>
+        <p>Bill clients for completed work</p>
+      </div>
+      <div class="dc-arrow">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+
+    <div class="dash-card" onclick="openScreen('worker-screen')">
+      <div class="dc-icon blue">
+        <svg fill="none" stroke="#1565C0" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="dc-text">
+        <h3>Worker Spend</h3>
+        <p>Track worker payments &amp; wages</p>
+      </div>
+      <div class="dc-arrow">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ QUOTATION SCREEN ═══════════════════════════ -->
+<div id="quotation-screen" class="screen">
+
+  <!-- TOOLBAR -->
+  <div class="toolbar no-print" id="q-toolbar">
+    <div class="toolbar-inner">
+      <div class="toolbar-brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Quotation
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn btn-back" onclick="backToDash()">← Back</button>
+        <button class="btn btn-customer" onclick="openQCustomerModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="btn-label">Edit Customer</span>
+        </button>
+        <button class="btn btn-add" onclick="addQRow()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Row
+        </button>
+        <button class="btn btn-save" onclick="saveQuotationPDF()" id="q-savebtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Save as PDF
+        </button>
+        <button onclick="saveQForMobile()" class="mobile-btn btn btn-save">📱 Mobile PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUOTATION CUSTOMER MODAL -->
+  <div class="modal-overlay" id="qCustomerModal" onclick="closeIfQOverlay(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Edit Customer Info</h2>
+        <button class="modal-close" onclick="closeQCustomerModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="field-group"><label>Customer Name</label><input type="text" id="qf-customer" placeholder="e.g. B. Sarith Construction"/></div>
+        <div class="field-group"><label>Contact</label><input type="text" id="qf-contact" placeholder="e.g. 012 345 678"/></div>
+        <div class="field-group"><label>Address <span class="hint">(Khmer OK)</span></label><input type="text" id="qf-address" placeholder="e.g. ទូចព្រៃ" class="khmer-input"/></div>
+        <div class="field-row">
+          <div class="field-group"><label>Quote Number</label><input type="text" id="qf-quoteno" placeholder="e.g. 9535"/></div>
+          <div class="field-group"><label>Date</label><input type="text" id="qf-date" placeholder="DD-MM-YY"/></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cancel" onclick="closeQCustomerModal()">Cancel</button>
+        <button class="btn btn-apply" onclick="applyQCustomer()">Apply Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUOTATION PAGE -->
+  <div class="page-wrapper">
+    <div class="invoice" id="quotation-doc">
+      <div class="inv-header">
+        <div class="logo-box"><img src="image.png" alt="Logo" onerror="this.style.background='#dde3ec';this.removeAttribute('src')"/></div>
+        <div class="company-block" style="margin-right:150px;">
+          <h1 class="co-name khmer">ហៃគៀង ដេគ័រ</h1>
+          <p class="co-phone">Mobile: 096 994 7080 / 017 35 80 03</p>
+          <p class="co-tag">Quotation</p>
+        </div>
+      </div>
+      <div class="client-grid">
+        <div class="client-col">
+          <div class="cfield"><span class="cl">Customer:</span><span class="cv khmer" id="qd-customer">B. Sarith Construction</span></div>
+          <div class="cfield"><span class="cl">Contact:</span><span class="cv" id="qd-contact"></span></div>
+          <div class="cfield"><span class="cl">Address:</span><span class="cv khmer" id="qd-address">ទូចព្រៃ</span></div>
+        </div>
+        <div class="client-col client-col-right">
+          <div class="cfield"><span class="cl">Quote Number:</span><span class="cv" id="qd-quoteno">9535</span></div>
+          <div class="cfield"><span class="cl">Date:</span><span class="cv" id="qd-date"></span></div>
+        </div>
+      </div>
+      <div class="table-scroll-wrap"><table class="inv-table" id="q-items-table">
+        <thead>
+          <tr>
+            <th class="th-no">No</th>
+            <th class="th-content">Content</th>
+            <th class="th-size">Size (m2)</th>
+            <th class="th-price">Price</th>
+            <th class="th-act no-print">·</th>
+          </tr>
+        </thead>
+        <tbody id="q-table-body">
+          <tr>
+            <td class="tc-no" contenteditable="true">1</td>
+            <td class="tc-content khmer" contenteditable="true">ថ្នាំរករក</td>
+            <td class="tc-size" contenteditable="true">1m2</td>
+            <td class="tc-price" contenteditable="true">9.5$</td>
+            <td class="tc-act no-print"><button class="del-btn" onclick="deleteQRow(this)">✕</button></td>
+          </tr>
+          <tr>
+            <td class="tc-no" contenteditable="true">2</td>
+            <td class="tc-content khmer" contenteditable="true">ថ្នាំដំបូលកែវស្ម</td>
+            <td class="tc-size" contenteditable="true">1m2</td>
+            <td class="tc-price" contenteditable="true">12.5$</td>
+            <td class="tc-act no-print"><button class="del-btn" onclick="deleteQRow(this)">✕</button></td>
+          </tr>
+          <tr>
+            <td class="tc-no" contenteditable="true">3</td>
+            <td class="tc-content khmer" contenteditable="true">ថ្នាំដំបូលទឹករ</td>
+            <td class="tc-size" contenteditable="true">1m2</td>
+            <td class="tc-price" contenteditable="true">15$</td>
+            <td class="tc-act no-print"><button class="del-btn" onclick="deleteQRow(this)">✕</button></td>
+          </tr>
+          <tr>
+            <td class="tc-no" contenteditable="true">4</td>
+            <td class="tc-content" contenteditable="true"></td>
+            <td class="tc-size" contenteditable="true"></td>
+            <td class="tc-price" contenteditable="true"></td>
+            <td class="tc-act no-print"><button class="del-btn" onclick="deleteQRow(this)">✕</button></td>
+          </tr>
+          <tr>
+            <td class="tc-no" contenteditable="true">5</td>
+            <td class="tc-content" contenteditable="true"></td>
+            <td class="tc-size" contenteditable="true"></td>
+            <td class="tc-price" contenteditable="true"></td>
+            <td class="tc-act no-print"><button class="del-btn" onclick="deleteQRow(this)">✕</button></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="sum-row">
+            <td class="sum-label" colspan="3">Deposit</td>
+            <td class="sum-val" contenteditable="true"></td>
+            <td class="tc-act no-print"></td>
+          </tr>
+          <tr class="sum-row total-row">
+            <td class="sum-label" colspan="3">Total</td>
+            <td class="sum-val" contenteditable="true"></td>
+            <td class="tc-act no-print"></td>
+          </tr>
+        </tfoot>
+      </table></div>
+      <div class="notes-wrap">
+        <p class="notes-head khmer">Notes/ កំណត់:</p>
+        <div id="q-notes-list">
+          <p class="note khmer" contenteditable="true">1. កក់៥០ភាគរយពេលសំភារ: ដាក់ដល់ការដ្ឋាន</p>
+          <p class="note khmer" contenteditable="true">2. ស្នើរដក 30% ពេលដំឡើងសន្លឹករួចរាល់</p>
+          <p class="note khmer" contenteditable="true">3. 20% បើកផ្តាច់ពេលបញ្ចប់ការងារ</p>
+          <p class="note khmer" contenteditable="true">4. រាល់ការងារដែលមិនមាននៅក្នុងតារាងតម្លៃ គឺមិនត្រូវបានរាប់បញ្ចូល</p>
+        </div>
+        <div class="no-print"><button class="inline-add note-add-btn" onclick="addQNote()">＋ Add Note</button></div>
+      </div>
+      <div class="sig-row">
+        <div class="sig-block">
+          <p class="sig-title khmer">ហត្ថលេខា និងស្នាមមេដៃស្តាំ</p>
+          <img src="signature.png" class="sig-img" onerror="this.style.display='none'"/>
+          <div class="sig-line"></div>
+          <p class="sig-role khmer">ភាគីអ្នកម៉ៅការ</p>
+        </div>
+        <div class="sig-block">
+          <p class="sig-title khmer">ហត្ថលេខា និងស្នាមមេដៃស្តាំ</p>
+          <div class="sig-line" style="margin-top:75px"></div>
+          <p class="sig-role khmer">ភាគគីម្ចាស់ការ</p>
+        </div>
+      </div>
+      <div class="inv-footer">
+        <p>Head Office: Sangkat Psa Derm Skov, Khan Chomkamon, Phnom Penh, Cambodia</p>
+        <p>Telegram: 096 994 7080 &nbsp;|&nbsp; Facebook: <span class="khmer">ហៃគៀង ដេគ័រ</span></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ INVOICE SCREEN ═══════════════════════════ -->
+<div id="invoice-screen" class="screen">
+
+  <!-- TOOLBAR -->
+  <div class="toolbar no-print" id="i-toolbar">
+    <div class="toolbar-inner">
+      <div class="toolbar-brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Invoice
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn btn-back" onclick="backToDash()">← Back</button>
+        <button class="btn btn-customer" onclick="openICustomerModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="btn-label">Edit Customer</span>
+        </button>
+        <button class="btn btn-add" onclick="addIRow()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Row
+        </button>
+        <button class="btn btn-save" onclick="saveInvoicePDF()" id="i-savebtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Save as PDF
+        </button>
+        <button onclick="saveIForMobile()" class="mobile-btn btn btn-save">📱 Mobile PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVOICE CUSTOMER MODAL -->
+  <div class="modal-overlay" id="iCustomerModal" onclick="closeIfIOverlay(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Edit Customer Info</h2>
+        <button class="modal-close" onclick="closeICustomerModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="field-group"><label>Customer Name</label><input type="text" id="if-customer" placeholder="e.g. B. Sarith Construction"/></div>
+        <div class="field-group"><label>Contact</label><input type="text" id="if-contact" placeholder="e.g. 012 345 678"/></div>
+        <div class="field-group"><label>Address <span class="hint">(Khmer OK)</span></label><input type="text" id="if-address" placeholder="e.g. ទូចព្រៃ" class="khmer-input"/></div>
+        <div class="field-row">
+          <div class="field-group"><label>Invoice Number</label><input type="text" id="if-invno" placeholder="e.g. INV-001"/></div>
+          <div class="field-group"><label>Date</label><input type="text" id="if-date" placeholder="DD-MM-YY"/></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cancel" onclick="closeICustomerModal()">Cancel</button>
+        <button class="btn btn-apply" onclick="applyICustomer()">Apply Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVOICE PAGE — same layout as quotation, green theme -->
+  <div class="page-wrapper">
+    <div class="invoice inv-green" id="invoice-doc">
+      <div class="inv-header">
+        <div class="logo-box"><img src="image.png" alt="Logo" onerror="this.style.background='#dde3ec';this.removeAttribute('src')"/></div>
+        <div class="company-block" style="margin-right:150px;">
+          <h1 class="co-name khmer">ហៃគៀង ដេគ័រ</h1>
+          <p class="co-phone">Mobile: 096 994 7080 / 017 35 80 03</p>
+          <p class="co-tag">Invoice</p>
+        </div>
+      </div>
+      <div class="client-grid">
+        <div class="client-col">
+          <div class="cfield"><span class="cl">Customer:</span><span class="cv khmer" id="id-customer">B. Sarith Construction</span></div>
+          <div class="cfield"><span class="cl">Contact:</span><span class="cv" id="id-contact"></span></div>
+          <div class="cfield"><span class="cl">Address:</span><span class="cv khmer" id="id-address">ទូចព្រៃ</span></div>
+        </div>
+        <div class="client-col client-col-right">
+          <div class="cfield"><span class="cl">Invoice Number:</span><span class="cv" id="id-invno">INV-001</span></div>
+          <div class="cfield"><span class="cl">Date:</span><span class="cv" id="id-date"></span></div>
+        </div>
+      </div>
+      <div class="table-scroll-wrap"><table class="inv-table" id="i-items-table">
+        <thead>
+          <tr>
+            <th class="th-no">No</th>
+            <th class="th-content">Content</th>
+            <th class="th-size">Size (m2)</th>
+            <th class="th-price">Price</th>
+            <th class="th-price">Total</th>
+            <th class="th-act no-print">·</th>
+          </tr>
+        </thead>
+        <tbody id="i-table-body">
+          <tr>
+            <td class="tc-no" contenteditable="true">1</td>
+            <td class="tc-content khmer" contenteditable="true">ថ្នាំរករក</td>
+            <td class="tc-size" contenteditable="true" oninput="calcInvoice()">1</td>
+            <td class="tc-price" contenteditable="true" oninput="calcInvoice()">9.5</td>
+            <td class="tc-price itotal">9.5$</td>
+            <td class="tc-act no-print"><button class="del-btn" onclick="deleteIRow(this)">✕</button></td>
+          </tr>
+          <tr>
+            <td class="tc-no" contenteditable="true">2</td>
+            <td class="tc-content khmer" contenteditable="true">ថ្នាំដំបូលកែវស្ម</td>
+            <td class="tc-size" contenteditable="true" oninput="calcInvoice()">1</td>
+            <td class="tc-price" contenteditable="true" oninput="calcInvoice()">12.5</td>
+            <td class="tc-price itotal">12.5$</td>
+            <td class="tc-act no-print"><button class="del-btn" onclick="deleteIRow(this)">✕</button></td>
+          </tr>
+          <tr>
+            <td class="tc-no" contenteditable="true">3</td>
+            <td class="tc-content khmer" contenteditable="true">ថ្នាំដំបូលទឹករ</td>
+            <td class="tc-size" contenteditable="true" oninput="calcInvoice()">1</td>
+            <td class="tc-price" contenteditable="true" oninput="calcInvoice()">15</td>
+            <td class="tc-price itotal">15$</td>
+            <td class="tc-act no-print"><button class="del-btn" onclick="deleteIRow(this)">✕</button></td>
+          </tr>
+          <tr>
+            <td class="tc-no" contenteditable="true">4</td>
+            <td class="tc-content" contenteditable="true"></td>
+            <td class="tc-size" contenteditable="true" oninput="calcInvoice()"></td>
+            <td class="tc-price" contenteditable="true" oninput="calcInvoice()"></td>
+            <td class="tc-price itotal"></td>
+            <td class="tc-act no-print"><button class="del-btn" onclick="deleteIRow(this)">✕</button></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="sum-row">
+            <td class="sum-label" colspan="4">Deposit</td>
+            <td class="sum-val" contenteditable="true" oninput="calcInvoice()" id="i-deposit"></td>
+            <td class="tc-act no-print"></td>
+          </tr>
+          <tr class="sum-row total-row">
+            <td class="sum-label" colspan="4">Total</td>
+            <td class="sum-val" id="i-total">0$</td>
+            <td class="tc-act no-print"></td>
+          </tr>
+        </tfoot>
+      </table></div>
+      <div class="notes-wrap">
+        <p class="notes-head khmer">Notes/ កំណត់:</p>
+        <div id="i-notes-list">
+          <p class="note khmer" contenteditable="true">1. កក់៥០ភាគរយពេលសំភារ: ដាក់ដល់ការដ្ឋាន</p>
+          <p class="note khmer" contenteditable="true">2. ស្នើរដក 30% ពេលដំឡើងសន្លឹករួចរាល់</p>
+          <p class="note khmer" contenteditable="true">3. 20% បើកផ្តាច់ពេលបញ្ចប់ការងារ</p>
+          <p class="note khmer" contenteditable="true">4. រាល់ការងារដែលមិនមាននៅក្នុងតារាងតម្លៃ គឺមិនត្រូវបានរាប់បញ្ចូល</p>
+        </div>
+        <div class="no-print"><button class="inline-add note-add-btn" onclick="addINote()">＋ Add Note</button></div>
+      </div>
+      <div class="sig-row">
+        <div class="sig-block">
+          <p class="sig-title khmer">ហត្ថលេខា និងស្នាមមេដៃស្តាំ</p>
+          <img src="signature.png" class="sig-img" onerror="this.style.display='none'"/>
+          <div class="sig-line"></div>
+          <p class="sig-role khmer">ភាគីអ្នកម៉ៅការ</p>
+        </div>
+        <div class="sig-block">
+          <p class="sig-title khmer">ហត្ថលេខា និងស្នាមមេដៃស្តាំ</p>
+          <div class="sig-line" style="margin-top:75px"></div>
+          <p class="sig-role khmer">ភាគគីម្ចាស់ការ</p>
+        </div>
+      </div>
+      <div class="inv-footer">
+        <p>Head Office: Sangkat Psa Derm Skov, Khan Chomkamon, Phnom Penh, Cambodia</p>
+        <p>Telegram: 096 994 7080 &nbsp;|&nbsp; Facebook: <span class="khmer">ហៃគៀង ដេគ័រ</span></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ WORKER SCREEN ═══════════════════════════ -->
+<div id="worker-screen" class="screen">
+  <div class="worker-toolbar no-print">
+    <div class="worker-toolbar-inner">
+      <div class="worker-toolbar-brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Worker Spend
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn btn-back" onclick="backToDash()">← Back</button>
+        <button class="btn" style="background:#2980b9;color:#fff;" onclick="printWorker()">🖨 Print</button>
+        <button class="btn btn-save" onclick="saveWorkerPDF()" id="w-savebtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Save as PDF
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="worker-body">
+
+    <!-- DATE RANGE BANNER (editable, used in print) -->
+    <div class="worker-date-banner no-print">
+      <span class="wdb-label khmer">ចំណាយ — ថ្ងៃទី</span>
+      <span class="wdb-date" id="wd-date-from" contenteditable="true">22-12-2025</span>
+      <span class="wdb-label khmer"> ដល់ </span>
+      <span class="wdb-date" id="wd-date-to" contenteditable="true">17-01-2026</span>
+    </div>
+
+    <!-- SUMMARY CARDS -->
+    <div class="worker-summary">
+      <div class="ws-card"><div class="ws-val" id="ws-count">0</div><div class="ws-lbl">Workers</div></div>
+      <div class="ws-card"><div class="ws-val" id="ws-days">0</div><div class="ws-lbl">Total Days</div></div>
+      <div class="ws-card"><div class="ws-val green" id="ws-total">$0</div><div class="ws-lbl">Total Spend</div></div>
+      <div class="ws-card"><div class="ws-val" id="ws-avg">$0</div><div class="ws-lbl">Avg / Worker</div></div>
+    </div>
+
+    <!-- WORKER LIST (table view) -->
+    <div class="worker-table-wrap no-print">
+      <table class="worker-tbl">
+        <thead>
+          <tr>
+            <th class="khmer">ឈ្មោះ</th>
+            <th class="khmer">ការងារ</th>
+            <th class="khmer">ថ្ងៃធ្វើ</th>
+            <th class="khmer">ថ្វូរ/ថ្ងៃ</th>
+            <th class="khmer">សរុប</th>
+            <th class="khmer">បើកហើយ</th>
+            <th class="khmer">នៅសល់</th>
+            <th class="no-print"></th>
+          </tr>
+        </thead>
+        <tbody id="worker-list"></tbody>
+      </table>
+    </div>
+
+    <button class="btn-add-worker no-print" onclick="openWModal()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Worker
+    </button>
+
+    <!-- SIGNATURE AREA (editable, used in print) -->
+    <div class="worker-sig-area no-print">
+      <div class="wsa-inner">
+        <div class="wsa-seal-box">
+          <img src="signature.png" class="wsa-sig-img" onerror="this.style.opacity='.3'" crossorigin="anonymous"/>
+        </div>
+        <div class="wsa-name khmer" id="wd-sig-name" contenteditable="true">ម៉េង ងួនសៀ</div>
+        <div class="wsa-date khmer">ធ្វើនៅថ្ងៃទី <span id="wd-sig-date" contenteditable="true">17- ខែ01- ឆ្នាំ2025</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- WORKER MODAL -->
+<div class="wmodal-overlay" id="wModal" onclick="closeIfWOverlay(event)">
+  <div class="wmodal">
+    <div class="wmodal-header">
+      <h2 id="wm-title">Add Worker</h2>
+      <button class="modal-close" onclick="closeWModal()">✕</button>
+    </div>
+    <div class="wmodal-body">
+      <div class="field-group"><label>Name / ឈ្មោះ</label><input type="text" id="wf-name" placeholder="Worker name" class="khmer-input"/></div>
+      <div class="field-group"><label>Role / ការងារ</label><input type="text" id="wf-role" placeholder="e.g. ជ័រ, ឥដ្ឋ" class="khmer-input"/></div>
+      <div class="wmodal-row">
+        <div class="field-group"><label>Days Worked / ថ្ងៃ</label><input type="number" id="wf-days" placeholder="10" min="0"/></div>
+        <div class="field-group"><label>Rate / Day ($)</label><input type="number" id="wf-rate" placeholder="15" min="0"/></div>
+      </div>
+      <div class="field-group"><label>Already Paid ($) / បើកហើយ</label><input type="number" id="wf-already" placeholder="0" min="0"/></div>
+    </div>
+    <div class="wmodal-footer">
+      <button class="btn btn-cancel" onclick="closeWModal()">Cancel</button>
+      <button class="btn btn-apply" onclick="applyWorker()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
